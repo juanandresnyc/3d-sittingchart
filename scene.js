@@ -1,37 +1,6 @@
 // https://github.com/mrdoob/three.js/blob/master/examples/webgl_loader_obj_mtl.html
 // https://codepen.io/dxinteractive/pen/reNpOR
 
-var ZONES_COLORS = {
-  'juanandres': 'rgb(255, 0, 0)',
-  'katie': 'rgb(0, 255, 0)',
-  'iain': 'rgb(0, 0, 255)',
-  'rebecca': 'rgb(0, 255, 255)',
-  'liz': 'rgb(255, 255, 0)',
-}
-
-// Initials because public
-// TODO figure out a better way to come up with this numbers
-var DATA = [
-  // Left side
-  {name: 'Ma', color: ZONES_COLORS['juanandres'],  position: [-50, 0, 140]},
-  {name: 'Kn', color: ZONES_COLORS['juanandres'],     position: [-50, 0, 60]},
-  // {name: 'Honor', color: ZONES_COLORS['katie'],           position: [-50, 0, -10]},
-  {name: 'Ls', color: ZONES_COLORS['katie'],            position: [-50, 0, -90]},
-  {name: 'By', color: ZONES_COLORS['katie'],        position: [-50, 0, -150]},
-  // right side
-  {name: 'Tq', color: ZONES_COLORS['liz'],      position: [50, 0, 150]},
-  {name: 'Nl', color: ZONES_COLORS['liz'],       position: [50, 0, 90]},
-  {name: 'Sa', color: ZONES_COLORS['rebecca'],   position: [50, 0, 30]},
-  {name: 'Lg', color: ZONES_COLORS['rebecca'], position: [50, 0, -30]},
-  {name: 'Ad', color: ZONES_COLORS['rebecca'],   position: [50, 0, -90]},
-  {name: 'Aa', color: ZONES_COLORS['iain'],       position: [50, 0, -150]},
-  // upper side
-  {name: 'Se', color: ZONES_COLORS['katie'],      position: [-20, 0, -200]},
-  {name: 'Je', color: ZONES_COLORS['iain'],   position: [20, 0, -200]},
-  // lower side
-  {name: 'En', color: ZONES_COLORS['liz'],       position: [0, 0, 200]},
-]
-
 function get2DCoords(position, camera) {
   var vector = position.project(camera);
   vector.x = (vector.x + 1)/2 * window.innerWidth;
@@ -159,6 +128,16 @@ $container.appendChild(engine.renderer.domElement);
 document.body.appendChild($container);
 window.addEventListener('resize', engine.resize, false);
 
-// TODO: This data should be loaded differently
-engine.initStudentMarkers(DATA, $container);
+fetch('http://jovemprajovem.com/seats/seats.php' + window.location.search)
+     .then(resp => resp.json())
+     .then(resp => updateMarkers(resp.map(row => ({
+       name: row.nm,
+       color: row.color_value,
+       position: [row.loc_x, row.loc_y, row.loc_z],
+     }))));
+
+function updateMarkers(data) {
+  engine.initStudentMarkers(data, $container);
+}
+
 engine.animate();
