@@ -137,7 +137,6 @@ fetch('http://jovemprajovem.com/seats/seats.php' + window.location.search)
      }))));
 
 function updateMarkers(data) {
-console.log(data, DATA);
   engine.initStudentMarkers(data, $container);
 }
 
