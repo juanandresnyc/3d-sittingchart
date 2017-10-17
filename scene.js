@@ -13,23 +13,23 @@ var ZONES_COLORS = {
 // TODO figure out a better way to come up with this numbers
 var DATA = [
   // Left side
-  {name: 'Nl', color: ZONES_COLORS['juanandres'],  position: [-50, 0, 140]},
+  {name: 'Ma', color: ZONES_COLORS['juanandres'],  position: [-50, 0, 140]},
   {name: 'Kn', color: ZONES_COLORS['juanandres'],     position: [-50, 0, 60]},
-  {name: 'Hr', color: ZONES_COLORS['katie'],           position: [-50, 0, -10]},
+  // {name: 'Honor', color: ZONES_COLORS['katie'],           position: [-50, 0, -10]},
   {name: 'Ls', color: ZONES_COLORS['katie'],            position: [-50, 0, -90]},
   {name: 'By', color: ZONES_COLORS['katie'],        position: [-50, 0, -150]},
   // right side
   {name: 'Tq', color: ZONES_COLORS['liz'],      position: [50, 0, 150]},
-  {name: 'Ma', color: ZONES_COLORS['liz'],       position: [50, 0, 90]},
+  {name: 'Nl', color: ZONES_COLORS['liz'],       position: [50, 0, 90]},
   {name: 'Sa', color: ZONES_COLORS['rebecca'],   position: [50, 0, 30]},
   {name: 'Lg', color: ZONES_COLORS['rebecca'], position: [50, 0, -30]},
   {name: 'Ad', color: ZONES_COLORS['rebecca'],   position: [50, 0, -90]},
   {name: 'Aa', color: ZONES_COLORS['iain'],       position: [50, 0, -150]},
   // upper side
-  {name: 'Se', color: ZONES_COLORS['iain'],      position: [-20, 0, -200]},
+  {name: 'Se', color: ZONES_COLORS['katie'],      position: [-20, 0, -200]},
   {name: 'Je', color: ZONES_COLORS['iain'],   position: [20, 0, -200]},
   // lower side
-  {name: 'Ts', color: ZONES_COLORS['liz'],       position: [0, 0, 200]},
+  {name: 'En', color: ZONES_COLORS['liz'],       position: [0, 0, 200]},
 ]
 
 function get2DCoords(position, camera) {
