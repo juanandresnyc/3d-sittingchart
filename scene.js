@@ -1,37 +1,6 @@
 // https://github.com/mrdoob/three.js/blob/master/examples/webgl_loader_obj_mtl.html
 // https://codepen.io/dxinteractive/pen/reNpOR
 
-var ZONES_COLORS = {
-  'juanandres': 'rgb(255, 0, 0)',
-  'katie': 'rgb(0, 255, 0)',
-  'iain': 'rgb(0, 0, 255)',
-  'rebecca': 'rgb(0, 255, 255)',
-  'liz': 'rgb(255, 255, 0)',
-}
-
-// Initials because public
-// TODO figure out a better way to come up with this numbers
-var DATA = [
-  // Left side
-  {name: 'Ma', color: ZONES_COLORS['juanandres'],  position: [-50, 0, 140]},
-  {name: 'Kn', color: ZONES_COLORS['juanandres'],     position: [-50, 0, 60]},
-  // {name: 'Honor', color: ZONES_COLORS['katie'],           position: [-50, 0, -10]},
-  {name: 'Ls', color: ZONES_COLORS['katie'],            position: [-50, 0, -90]},
-  {name: 'By', color: ZONES_COLORS['katie'],        position: [-50, 0, -150]},
-  // right side
-  {name: 'Tq', color: ZONES_COLORS['liz'],      position: [50, 0, 150]},
-  {name: 'Nl', color: ZONES_COLORS['liz'],       position: [50, 0, 90]},
-  {name: 'Sa', color: ZONES_COLORS['rebecca'],   position: [50, 0, 30]},
-  {name: 'Lg', color: ZONES_COLORS['rebecca'], position: [50, 0, -30]},
-  {name: 'Ad', color: ZONES_COLORS['rebecca'],   position: [50, 0, -90]},
-  {name: 'Aa', color: ZONES_COLORS['iain'],       position: [50, 0, -150]},
-  // upper side
-  {name: 'Se', color: ZONES_COLORS['katie'],      position: [-20, 0, -200]},
-  {name: 'Je', color: ZONES_COLORS['iain'],   position: [20, 0, -200]},
-  // lower side
-  {name: 'En', color: ZONES_COLORS['liz'],       position: [0, 0, 200]},
-]
-
 function get2DCoords(position, camera) {
   var vector = position.project(camera);
   vector.x = (vector.x + 1)/2 * window.innerWidth;
@@ -56,15 +25,16 @@ function StudentMarker(name, color) {
 
   this.updateTextPosition = (camera) => {
       this.textPosition.copy(this.mesh.position);
+      this.textPosition.y += 40;
       var coords2d = get2DCoords(this.textPosition, camera);
       this.textElement.style.left = coords2d.x + 'px';
       this.textElement.style.top = coords2d.y + 'px';
   }
 
   this.setPosition = (position, camera) =>  {
-    this.mesh.position.x = position[0];
+    this.mesh.position.x = position.x;
     this.mesh.position.y = 20;
-    this.mesh.position.z = position[2];
+    this.mesh.position.z = position.z;
     this.updateTextPosition(camera);
   }
 }
@@ -75,10 +45,14 @@ function Engine() {
   this.renderer = new THREE.WebGLRenderer();
   this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
   this.studentMarkers = [];
+  this.intersectionPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(10000, 10000),
+    new THREE.MeshLambertMaterial({color: new THREE.Color('rgb(100, 100, 100)')})
+  );
 
   this._setLights = () => {
-    // var ambient = new THREE.AmbientLight( 0x101030 );
-    // this.scene.add(ambient);
+    var ambient = new THREE.AmbientLight( 0x101030 );
+    this.scene.add(ambient);
 
     var directionalLight = new THREE.DirectionalLight( 0xffffff );
     directionalLight.position.set( 0, 10, 10 );
@@ -95,6 +69,12 @@ function Engine() {
         this.scene.add( newObject );
       }
     });
+
+    loader.load( 'samsung_tv.obj', object => {
+      object.scale.set(40,40,40)
+      object.position.x += 150
+      this.scene.add(object);
+    });
   }
 
   this._setControls = () => {
@@ -110,11 +90,14 @@ function Engine() {
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-    this.camera.position.z = 500;
+    this.camera.position.y += 800;
+    this.camera.position.x += 1; // This causes the 90degree rotation :X
+
+    this.intersectionPlane.rotation.x -= Math.PI / 2
+    this.scene.add(this.intersectionPlane);
 
     this._setLights();
     this._loadAsyncModels();
-
     this._setControls();
 
     return this;
@@ -126,22 +109,12 @@ function Engine() {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
-  this.initStudentMarkers = (dataStore, domElement) => {
-    for (var i = 0; i < dataStore.length; i++) {
-      var data = dataStore[i];
-      var studentMarker = new StudentMarker(data.name, data.color);
-      domElement.appendChild(studentMarker.textElement);
-      studentMarker.setPosition(data.position, this.camera);
-      this.scene.add(studentMarker.mesh);
-      this.studentMarkers.push(studentMarker);
-    }
-  }
-
   this.update = () => {
     this.controls.update();
     this.studentMarkers.forEach(studentMarker => {
       studentMarker.updateTextPosition(this.camera)
     });
+
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -159,6 +132,27 @@ $container.appendChild(engine.renderer.domElement);
 document.body.appendChild($container);
 window.addEventListener('resize', engine.resize, false);
 
-// TODO: This data should be loaded differently
-engine.initStudentMarkers(DATA, $container);
 engine.animate();
+
+// TODO Refactor this code with the engine!
+var raycaster = new THREE.Raycaster(); // create once and reuse
+var mouse = new THREE.Vector2(); // create once and reuse
+function onDoubleClick( event ) {
+  event.preventDefault();
+  mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+  mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+  // Note: don't think this has to be set in every double click!
+  raycaster.setFromCamera(mouse, engine.camera);
+  var intersections = raycaster.intersectObject(engine.intersectionPlane);
+
+  intersections.map(intersection => {
+    name = window.prompt('Name of student');
+    const studentMarker = new StudentMarker(name, '#003bde')
+    studentMarker.setPosition(intersection.point, engine.camera)
+    $container.appendChild(studentMarker.textElement);
+    engine.studentMarkers.push(studentMarker);
+    engine.scene.add(studentMarker.mesh)
+  })
+}
+document.addEventListener( 'dblclick', onDoubleClick, false );
